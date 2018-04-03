@@ -51,7 +51,7 @@
                                  "cancelled-instruction" "company-use" "credit-date" "digit" "discount"	"document-number"
                                  "due-date"	"errors" "inscription-code"	"inscription-number" "interest"	"invoice-digit"
                                  "iof" "liquidation-code" "main-value" "name" "occurrence-code"	"occurrence-date"
-                                 "other-credits" "our-number" "our-number-2" "our-number-3"	"our-number-digit"
+                                 "other-credits" "our-number" "our-number-2" "our-number-3" "our-number-digit"
                                  "reduction-value" "register-type" "sequential-number" "species" "value" "wallet" "whites"
                                  "whites-2"	"whites-3" "whites-4" "whites-5" "whites-6"	"whites-7" "whites-8" "whites-9" "zeros" "zeros-2"]])]
 
@@ -70,14 +70,15 @@
 (defn to-xlsx
   "converts a json file to xlsx rows and append the data to xlsx-file parameter"
   [input-data sheet header-row]
-  (let [entries (get input-data "entries")
-        rows    (doall (map #(reg-to-xlsx % sheet header-row) entries))]
+  (let [entries (get input-data "entries")]
 
-    rows))
+     (doseq [entry entries]
+       (reg-to-xlsx entry sheet header-row))))
 
 (defn from-json
  "read .json file and returns map data"
  [input-file-path]
+
  (j/parse-stream (clojure.java.io/reader input-file-path)))
 
 (defn process-json
@@ -87,11 +88,11 @@
         _           (println "processing json " filename)
         json-data   (from-json fullpath)
         sheet       (sp/select-sheet "retorno" wb)
-        header-row  (map sp/read-cell (first (sp/row-seq sheet)))
-        rows        (to-xlsx (get json-data "cnab400") sheet header-row)
-        _           (sp/save-workbook! xlsx-file-path wb)]
+        header-row  (map sp/read-cell (first (sp/row-seq sheet)))]
 
-    rows))
+    (to-xlsx (get json-data "cnab400") sheet header-row)
+
+    (sp/save-workbook! xlsx-file-path wb)))
 
 (defn process-json-files
   "reads a .json file with cnab data and appends it to xlsx file"
